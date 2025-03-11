@@ -1,10 +1,15 @@
+// app.module.ts
 import { Module } from '@nestjs/common';
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
+import { ConfigModule } from '@nestjs/config';
+import { DriftClientService } from './drift-client/drift-client.service';
+import { PerpOrderExecutorService } from './execution/perp-order-executor.service';
+import { PerpOrderExecutorController } from './execution/perp-order-executor.controller';
+import { MarketsController } from './markets/markets.controller';
+import { OrdersController } from './orders/orders.controller';
 
 @Module({
-  imports: [],
-  controllers: [AppController],
-  providers: [AppService],
+  imports: [ConfigModule.forRoot()],
+  controllers: [PerpOrderExecutorController, MarketsController, OrdersController],
+  providers: [PerpOrderExecutorService, DriftClientService],
 })
-export class AppModule {}
+export class AppModule { }
