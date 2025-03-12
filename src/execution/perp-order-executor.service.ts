@@ -114,22 +114,6 @@ export class PerpOrderExecutorService implements OnModuleInit {
   }
 
   /**
-   * 关闭指定仓位
-   * @param marketIndex 市场索引
-   */
-  async closePosition(marketIndex: number): Promise<string> {
-    try {
-      const txSignature = await this.driftClient.closePosition(marketIndex);
-      this.refreshPositions();
-      this.logger.log(`Position closed for market ${marketIndex}: ${txSignature}`);
-      return txSignature;
-    } catch (error) {
-      this.logger.error(`Position close failed: ${error.message}`, error.stack);
-      throw error;
-    }
-  }
-
-  /**
    * 附加条件单（止盈/止损）
    * @param marketIndex 市场索引
    * @param triggerPrice 触发价格

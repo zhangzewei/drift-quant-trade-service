@@ -1,7 +1,7 @@
 // markets.controller.ts
-import { Controller, Get, HttpException, HttpStatus, Logger } from '@nestjs/common';
+import { Controller, Get, HttpException, HttpStatus, Logger, Query } from '@nestjs/common';
 import { DriftClientService } from '../drift-client/drift-client.service';
-import { PerpMarketConfig } from '@drift-labs/sdk';
+import { PerpMarketAccount, PerpMarketConfig } from '@drift-labs/sdk';
 import { ApiInternalServerErrorResponse, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 
 @ApiTags('Markets')

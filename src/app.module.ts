@@ -6,10 +6,11 @@ import { PerpOrderExecutorService } from './execution/perp-order-executor.servic
 import { PerpOrderExecutorController } from './execution/perp-order-executor.controller';
 import { MarketsController } from './markets/markets.controller';
 import { OrdersController } from './orders/orders.controller';
+import { PositionController } from './positions/position.controller';
 
 @Module({
   imports: [ConfigModule.forRoot()],
-  controllers: [PerpOrderExecutorController, MarketsController, OrdersController],
+  controllers: [PerpOrderExecutorController, MarketsController, OrdersController, PositionController],
   providers: [PerpOrderExecutorService, DriftClientService],
 })
 export class AppModule { }

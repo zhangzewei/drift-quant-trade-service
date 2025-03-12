@@ -2,7 +2,7 @@
 import { Injectable, OnModuleInit, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Connection, PublicKey } from '@solana/web3.js';
-import { DriftClient, loadKeypair, Wallet, DriftEnv, DevnetPerpMarkets, MainnetPerpMarkets, PerpMarketConfig } from '@drift-labs/sdk';
+import { DriftClient, loadKeypair, Wallet, DriftEnv, DevnetPerpMarkets, MainnetPerpMarkets, PerpMarketConfig, PerpPosition } from '@drift-labs/sdk';
 
 @Injectable()
 export class DriftClientService implements OnModuleInit {
@@ -85,12 +85,24 @@ export class DriftClientService implements OnModuleInit {
 
   async getOrderByOrderId(orderId: number) {
     await this.driftClient.subscribe();
-    console.log(this.driftClient.getUser())
     return this.driftClient.getUser().getOrder(orderId);
   }
 
   async cancelOrderByOrderId(orderId: number) {
     await this.driftClient.subscribe();
     return await this.driftClient.cancelOrder(orderId);
+  }
+
+  /**
+   * 获取用户的所有仓位
+   * @param marketIndex 市场索引
+   */
+  async getUserPosition(marketIndex: number): Promise<PerpPosition> {
+    await this.driftClient.subscribe(); // 确保订阅更新
+    const userPositions = this.driftClient.getUser().getPerpPosition(Number(marketIndex));
+    if (!userPositions) {
+      throw new Error(`No position found for market index ${marketIndex}`);
+    }
+    return userPositions;
   }
 }

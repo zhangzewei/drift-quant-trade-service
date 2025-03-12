@@ -142,22 +142,4 @@ export class PerpOrderExecutorController {
       price: this.driftClientService.getClient().convertToPricePrecision(body.price),
     });
   }
-
-  // @Post('conditional')
-  // async attachConditionalOrder(@Body() body: ConditionalOrderDto): Promise<{ txSignature: string }> {
-  //   const { marketIndex, triggerPrice, triggerType } = body;
-  //   return this.attachConditionalOrder(marketIndex, triggerPrice, triggerType);
-  // }
-
-  @Post('close')
-  @ApiOperation({ summary: 'Close a position' })
-  @ApiBody({ type: ClosePositionDto })
-  @ApiResponse({ status: 201, description: 'Position closed successfully' })
-  @ApiBadRequestResponse({ description: 'Invalid input data' })
-  @ApiInternalServerErrorResponse({ description: 'Internal server error' })
-  async closePosition(@Body() body: ClosePositionDto): Promise<{ txSignature: string }> {
-    const { marketIndex } = body;
-    const txSignature = await this.perpExecutor.closePosition(marketIndex);
-    return { txSignature };
-  }
 }
