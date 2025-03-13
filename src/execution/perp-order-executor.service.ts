@@ -5,9 +5,13 @@ import {
   PositionDirection,
   OrderType,
   OptionalOrderParams,
-  PerpPosition
+  PerpPosition,
+  BN,
+  convertToNumber,
+  BASE_PRECISION
 } from '@drift-labs/sdk';
 import { DriftClientService } from 'src/drift-client/drift-client.service';
+import { IPositionDirection } from './dto/place-order.dto';
 // import { RiskManagerService } from '../risk-manager/risk-manager.service';
 
 export interface PerpOrderParams {
@@ -23,7 +27,6 @@ export interface PerpOrderParams {
 @Injectable()
 export class PerpOrderExecutorService implements OnModuleInit {
   private readonly logger = new Logger(PerpOrderExecutorService.name);
-  private driftClient: DriftClient;
   private activePositions = new Map<string, PerpPosition>();
 
   constructor(
@@ -54,11 +57,13 @@ export class PerpOrderExecutorService implements OnModuleInit {
       // }
 
       // 提交订单
+      const marketDetail = await this.driftClientService.getMarketDetail(params.marketIndex);
+
+      if (params.baseAssetAmount.lt(marketDetail.amm.minOrderSize)) {
+        throw new Error(`Order size too small, minimum order size is ${convertToNumber(marketDetail.amm.minOrderSize, BASE_PRECISION)}, Your order size is ${convertToNumber(params.baseAssetAmount, BASE_PRECISION)}`);
+      }
       const driftClient = this.driftClientService.getClient();
       const txSignature = await driftClient.placePerpOrder(params);
-
-      // 更新仓位缓存
-      await this.refreshPositions();
 
       this.logger.log(`Perp order placed successfully: ${txSignature}`);
       return txSignature;
@@ -140,4 +145,25 @@ export class PerpOrderExecutorService implements OnModuleInit {
   //     throw error;
   //   }
   // }
+
+  /**
+   * 关闭仓位
+   * @param marketIndex 市场索引
+   */
+  async closePosition(marketIndex: number): Promise<string> { // 返回交易签名 txSignature 字符串
+    // 获取仓位信息
+    const position = await this.driftClientService.getUserPosition(marketIndex);
+    if (!position) {
+      throw new Error(`No position found for market index ${marketIndex}`);
+    }
+    // 关闭仓位，方向取反
+    const positionDirection = position.baseAssetAmount.gt(new BN(0)) ? IPositionDirection.LONG : IPositionDirection.SHORT;
+    const params = {
+      marketIndex: Number(marketIndex),
+      direction: positionDirection === IPositionDirection.LONG ? PositionDirection.SHORT : PositionDirection.LONG,
+      baseAssetAmount: position.baseAssetAmount.abs(),
+      orderType: OrderType.MARKET
+    };
+    return await this.placePerpOrder(params);
+  }
 }

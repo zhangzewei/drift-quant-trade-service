@@ -2,7 +2,7 @@
 import { Injectable, OnModuleInit, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Connection, PublicKey } from '@solana/web3.js';
-import { DriftClient, loadKeypair, Wallet, DriftEnv, DevnetPerpMarkets, MainnetPerpMarkets, PerpMarketConfig, PerpPosition } from '@drift-labs/sdk';
+import { DriftClient, loadKeypair, Wallet, DriftEnv, DevnetPerpMarkets, MainnetPerpMarkets, PerpMarketConfig, PerpPosition, convertToNumber, BASE_PRECISION } from '@drift-labs/sdk';
 
 @Injectable()
 export class DriftClientService implements OnModuleInit {
@@ -90,6 +90,10 @@ export class DriftClientService implements OnModuleInit {
 
   async cancelOrderByOrderId(orderId: number) {
     await this.driftClient.subscribe();
+    const order = this.driftClient.getUser().getOrder(orderId);
+    if (!order) {
+      throw new Error(`Order not found for order ID ${orderId}`);
+    }
     return await this.driftClient.cancelOrder(orderId);
   }
 
@@ -104,5 +108,19 @@ export class DriftClientService implements OnModuleInit {
       throw new Error(`No position found for market index ${marketIndex}`);
     }
     return userPositions;
+  }
+
+  /**
+   * 获取marketIndex对应的市场信息
+   * @param marketIndex 市场索引
+   */
+  getMarketDetail(marketIndex: number) {
+    const market = this.driftClient.getPerpMarketAccount(Number(marketIndex));
+    if (!market) {
+      throw new Error(`No market found for market index ${marketIndex}`);
+    }
+    console.log(this.driftClient.convertToPerpPrecision(10), convertToNumber(this.driftClient.convertToPerpPrecision(10), BASE_PRECISION))
+    console.log(convertToNumber(market.amm.minOrderSize, BASE_PRECISION), convertToNumber(market.amm.orderStepSize, BASE_PRECISION))
+    return market;
   }
 }

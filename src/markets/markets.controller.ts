@@ -30,4 +30,26 @@ export class MarketsController {
       );
     }
   }
+
+  /**
+   * 获取永续合约账户信息
+   */
+  @Get('account')
+  @ApiOperation({ summary: 'Get perpetual account info' })
+  @ApiResponse({ status: 200, description: 'Perpetual account info' })
+  @ApiInternalServerErrorResponse({ description: 'Internal server error' })
+  async getPerpAccount(
+    @Query('marketIndex') marketIndex: number,
+  ): Promise<PerpMarketAccount> {
+    try {
+      const account = this.driftClientService.getMarketDetail(marketIndex);
+      return account;
+    } catch (error) {
+      this.logger.error(`Failed to fetch perp account: ${error.message}`, error.stack);
+      throw new HttpException(
+        { message: 'Failed to fetch perp account', details: error.message },
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
 }
